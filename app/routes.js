@@ -11,7 +11,6 @@ module.exports = function(app, passport) {
         res.render("login.hbs", {message: req.flash("login_msg")});
     });
 
-    //TODO: check documentation on passport.authenticate(~)
     app.post("/login", passport.authenticate("loginStrategy", {
         successRedirect: "/profile",
         failureRedirect: "/login",
@@ -19,7 +18,6 @@ module.exports = function(app, passport) {
     }));
 
     app.get("/signup", function(req,res) {
-        //TODO: how does flash msgs work
         res.render("signuplink.hbs", {message: req.flash("signup_msg")});
     });
 
@@ -29,7 +27,6 @@ module.exports = function(app, passport) {
         failureFlash: true
     });
 
-    //TODO: middleware is checkLoggedIn?
     app.get('/profile', checkLoggedIn, function(req, res) {
        res.render('profile.hbs', {
            user: req.user
@@ -37,14 +34,23 @@ module.exports = function(app, passport) {
     });
 
     app.get('/logout', function(req, res) {
-        //TODO: req.logout()?
        req.logout();
        res.render('/');
     });
 
     app.get('/listing', checkLoggedIn, function(req, res) {
+        let call_, SMS, meet_up;
         if (Object.keys(req.query).length !== 0) {
-
+            call_ = req.query.call_;
+            SMS = req.query.SMS;
+            meet_up = driver.get_meet_up(req.query.meet_up);
         }
+
+        Listing.find({$or:[{call_: call_},
+            {SMS: SMS},
+            {meet_up: meet_up},]},
+            (err, result) => {
+                res.render("listings.hbs", {result: result});
+            })
     })
 };
